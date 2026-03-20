@@ -1,0 +1,10 @@
+{
+  "appId": "com.quranreader.app",
+  "appName": "Quran Reader",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
