@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 // --- CONFIG & CONSTANTS ---
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyBwJHRZotVuaMTS4MXfNoo9dFqL-ZuUz7U";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = API_KEY
   ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`
   : null;
