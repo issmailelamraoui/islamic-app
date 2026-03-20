@@ -8,9 +8,9 @@ import {
 } from 'lucide-react';
 
 // --- CONFIG & CONSTANTS ---
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyBaEICBkoMjVhWJF8C_PB4c1MeJKqK7c9s";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyBwJHRZotVuaMTS4MXfNoo9dFqL-ZuUz7U";
 const GEMINI_URL = API_KEY
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`
   : null;
 
 const SURAH_START_PAGES = [
