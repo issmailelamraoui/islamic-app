@@ -10,7 +10,7 @@ import {
 // --- CONFIG & CONSTANTS ---
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyDPluj2d4RPxxUYbkt6Dm2xWKlLi86xHyk"; // Gemini API Key will be injected by the environment
 const GEMINI_URL = API_KEY
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`
   : null;
 
 const SURAH_START_PAGES = [
