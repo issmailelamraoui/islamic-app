@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // --- CONFIG & CONSTANTS ---
-const API_KEY = ""; // Gemini API Key will be injected by the environment
+const API_KEY = "AIzaSyDPluj2d4RPxxUYbkt6Dm2xWKlLi86xHyk"; // Gemini API Key will be injected by the environment
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`;
 
 const SURAH_START_PAGES = [
