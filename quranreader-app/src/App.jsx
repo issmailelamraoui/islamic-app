@@ -118,7 +118,18 @@ const fetchTafsirWithRetry = async (ayahText, retries = 5) => {
 
   for (let i = 0; i < retries; i++) {
     try {
-      const data = await geminiPost(payload);
+      const response = await CapacitorHttp.post({
+        url: GEMINI_URL,
+        headers: { 'Content-Type': 'application/json' },
+        data: payload
+      });
+
+      // FIXED: Check status code instead of .ok
+      if (response.status !== 200) throw new Error('API Error');
+
+      // FIXED: Use response.data directly (it is already parsed)
+      const data = response.data;
+
       return data.candidates?.[0]?.content?.parts?.[0]?.text || "عُذْراً، لَمْ أَتَمَكَّنْ مِنْ جَلْبِ التَّفْسِيرِ.";
     } catch (err) {
       console.error('Gemini tafsir error:', err);
@@ -138,8 +149,19 @@ const fetchAIChatResponse = async (question) => {
   };
 
   try {
-    const data = await geminiPost(payload);
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "عُذْراً، لَمْ أَتَمَكَّنْ مِنَ الإِجَابَةِ فِي الْوَقْتِ الْحَالِيِّ.";
+    const response = await CapacitorHttp.post({
+      url: GEMINI_URL,
+      headers: { 'Content-Type': 'application/json' },
+      data: payload
+    });
+
+    // FIXED: Check status code
+    if (response.status !== 200) throw new Error('API Error');
+
+    // FIXED: Use response.data directly
+    const data = response.data;
+
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "عُذْراً، لَمْ أَتَمَكَّنْ مِنَ الإِجَابَةِ.";
   } catch (err) {
     console.error('Gemini chat error:', err);
     return "حَدَثَ خَطَأٌ فِي الاِتِّصَالِ. يُرْجَى الْمُحَاوَلَةُ مَرَّةً أُخْرَى لاَحِقاً.";
