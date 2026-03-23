@@ -83,28 +83,6 @@ const fetchSurahs = async () => {
   }
 };
 
-const geminiPost = async (payload) => {
-  if (!GEMINI_URL) {
-    throw new Error('Missing Gemini API key');
-  }
-
-  const response = await CapacitorHttp.post({
-    url: GEMINI_URL,
-    headers: { 'Content-Type': 'application/json' },
-    data: payload
-  });
-
-  if (response.status < 200 || response.status >= 300) {
-    throw new Error(`API Error: ${response.status}`);
-  }
-
-  if (typeof response.data === 'string') {
-    return JSON.parse(response.data);
-  }
-
-  return response.data;
-};
-
 const fetchTafsirWithRetry = async (ayahText, retries = 5) => {
   if (!GEMINI_URL) {
     return "مِفْتَاحُ واجِهَةِ Gemini غَيْرُ مُعَدٍّ. يُرْجَى إِضافَةُ VITE_GEMINI_API_KEY.";
@@ -201,20 +179,42 @@ const AyahItem = memo(({ ayah, isSelected, isPlayingThisAyah, isBookmarked, onAy
 });
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem('mushaf_last_page');
+    const parsed = savedPage ? Number.parseInt(savedPage, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : 1;
+  });
   const [pageData, setPageData] = useState(null);
   const [surahs, setSurahs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSurahsLoading, setIsSurahsLoading] = useState(false);
   const [surahSearchQuery, setSurahSearchQuery] = useState('');
 
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('mushaf_theme');
+    return savedTheme === 'light' ? false : true;
+  });
   const [activeView, setActiveView] = useState('reader');
-  const [bookmarks, setBookmarks] = useState([]);
+  const [bookmarks, setBookmarks] = useState(() => {
+    try {
+      const savedBookmarks = localStorage.getItem('mushaf_bookmarks');
+      return savedBookmarks ? JSON.parse(savedBookmarks) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // -- FONT SIZE STATE --
-  const [fontSize, setFontSize] = useState(36); // Main Quran Font Size
-  const [tafsirFontSize, setTafsirFontSize] = useState(18); // Tafsir & Popup Font Size
+  const [fontSize, setFontSize] = useState(() => {
+    const savedFontSize = localStorage.getItem('mushaf_font_size');
+    const parsed = savedFontSize ? Number.parseInt(savedFontSize, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : 36;
+  }); // Main Quran Font Size
+  const [tafsirFontSize, setTafsirFontSize] = useState(() => {
+    const savedTafsirFontSize = localStorage.getItem('mushaf_tafsir_font_size');
+    const parsed = savedTafsirFontSize ? Number.parseInt(savedTafsirFontSize, 10) : NaN;
+    return Number.isFinite(parsed) ? parsed : 18;
+  }); // Tafsir & Popup Font Size
 
   const [chatMessages, setChatMessages] = useState([
     { role: 'ai', text: 'السَّلَامُ عَلَيْكُمْ. أَنَا مُسَاعِدُكَ الذَّكِيُّ. كَيْفَ يُمْكِنُنِي مُسَاعَدَتُكَ الْيَوْمَ فِي أُمُورِ دِينِكَ وَفْقاً لِلْقُرْآنِ وَالسُّنَّةِ؟' }
@@ -230,29 +230,11 @@ export default function App() {
   const [audioState, setAudioState] = useState({ playing: false, src: null, currentAyahNumber: null });
   const audioRef = useRef(null);
   const playbackState = useRef({ isPlayingPage: false, ayahs: [], currentIndex: 0 });
+  const [isPlayingPage, setIsPlayingPage] = useState(false);
 
-  // --- Initialize data from LocalStorage ---
+  // --- Initialize fonts ---
   useEffect(() => {
     injectFonts();
-    const savedPage = localStorage.getItem('mushaf_last_page');
-    if (savedPage) setCurrentPage(parseInt(savedPage));
-
-    // Load saved font sizes
-    const savedFontSize = localStorage.getItem('mushaf_font_size');
-    if (savedFontSize) setFontSize(parseInt(savedFontSize));
-
-    const savedTafsirFontSize = localStorage.getItem('mushaf_tafsir_font_size');
-    if (savedTafsirFontSize) setTafsirFontSize(parseInt(savedTafsirFontSize));
-
-    try {
-      const savedBookmarks = localStorage.getItem('mushaf_bookmarks');
-      if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
-    } catch (e) {
-      setBookmarks([]);
-    }
-
-    const savedTheme = localStorage.getItem('mushaf_theme');
-    if (savedTheme === 'light') setIsDarkMode(false);
   }, []);
 
   // --- Auto-Save font sizes when they change ---
@@ -344,6 +326,7 @@ export default function App() {
     } else {
       setAudioState({ playing: false, src: null, currentAyahNumber: null });
       playbackState.current.isPlayingPage = false;
+      setIsPlayingPage(false);
     }
   }, []);
 
@@ -352,6 +335,7 @@ export default function App() {
       audioRef.current.pause();
       setAudioState(prev => ({ ...prev, playing: false }));
       playbackState.current.isPlayingPage = false;
+      setIsPlayingPage(false);
     } else {
       if (!pageData || !pageData.ayahs.length) return;
       let startIndex = 0;
@@ -359,6 +343,7 @@ export default function App() {
         startIndex = pageData.ayahs.findIndex(a => a.number === selectedAyah.number);
       }
       playbackState.current = { isPlayingPage: true, ayahs: pageData.ayahs, currentIndex: startIndex };
+      setIsPlayingPage(true);
       playCurrentInSequence();
     }
   };
@@ -370,8 +355,10 @@ export default function App() {
         audioRef.current.pause();
         setAudioState({ ...audioState, playing: false });
         playbackState.current.isPlayingPage = false;
+        setIsPlayingPage(false);
       } else {
         playbackState.current.isPlayingPage = false;
+        setIsPlayingPage(false);
         audioRef.current.src = url;
         audioRef.current.play();
         setAudioState({ playing: true, src: url, currentAyahNumber: ayahNumber });
@@ -387,6 +374,7 @@ export default function App() {
         playCurrentInSequence();
       } else {
         setAudioState({ playing: false, src: null, currentAyahNumber: null });
+        setIsPlayingPage(false);
       }
     };
     return () => {
@@ -475,7 +463,7 @@ export default function App() {
     let currentSurah = null;
     const elements = [];
 
-    pageData.ayahs.forEach((ayah, index) => {
+    pageData.ayahs.forEach((ayah) => {
       if (currentSurah !== ayah.surah.number) {
         currentSurah = ayah.surah.number;
         elements.push(
@@ -563,12 +551,12 @@ export default function App() {
               <button
                 onClick={togglePagePlay}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all
-                  ${audioState.playing && playbackState.current.isPlayingPage
+                  ${audioState.playing && isPlayingPage
                     ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
                     : (isDarkMode ? 'bg-zinc-800 text-amber-500 hover:bg-zinc-700' : 'bg-gray-100 text-amber-700 hover:bg-gray-200')}
                 `}
               >
-                {audioState.playing && playbackState.current.isPlayingPage ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+                {audioState.playing && isPlayingPage ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
                 <span className="text-xs font-bold pt-0.5">الصفحة</span>
               </button>
 
