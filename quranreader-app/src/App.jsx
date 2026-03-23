@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { CapacitorHttp } from '@capacitor/core';
-import { 
-  BookOpen, Search, Bookmark, Play, Pause, 
-  Moon, Sun, ChevronRight, ChevronLeft, Info, 
-  X, List, Sparkles, Loader2, Volume2, 
+import {
+  BookOpen, Search, Bookmark, Play, Pause,
+  Moon, Sun, ChevronRight, ChevronLeft, Info,
+  X, List, Sparkles, Loader2, Volume2,
   ZoomIn, ZoomOut, MessageCircle, Send, Copy, Check
 } from 'lucide-react';
 
 // --- CONFIG & CONSTANTS ---
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyDPluj2d4RPxxUYbkt6Dm2xWKlLi86xHyk"; // Gemini API Key will be injected by the environment
 const GEMINI_URL = API_KEY
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`
   : null;
 
 const SURAH_START_PAGES = [
-  1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267, 282, 293, 305, 312, 
-  322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415, 418, 428, 434, 440, 446, 453, 458, 
-  467, 477, 483, 489, 496, 499, 502, 507, 511, 515, 518, 520, 523, 526, 528, 531, 534, 537, 542, 
-  545, 549, 551, 553, 554, 556, 558, 560, 562, 564, 566, 568, 570, 572, 574, 575, 577, 578, 580, 
-  582, 583, 585, 586, 587, 587, 589, 590, 591, 591, 592, 593, 594, 595, 595, 596, 596, 597, 597, 
+  1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267, 282, 293, 305, 312,
+  322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415, 418, 428, 434, 440, 446, 453, 458,
+  467, 477, 483, 489, 496, 499, 502, 507, 511, 515, 518, 520, 523, 526, 528, 531, 534, 537, 542,
+  545, 549, 551, 553, 554, 556, 558, 560, 562, 564, 566, 568, 570, 572, 574, 575, 577, 578, 580,
+  582, 583, 585, 586, 587, 587, 589, 590, 591, 591, 592, 593, 594, 595, 595, 596, 596, 597, 597,
   598, 598, 599, 599, 600, 600, 601, 601, 601, 602, 602, 602, 603, 603, 603, 604, 604, 604
 ];
 
@@ -30,18 +30,16 @@ const injectFonts = () => {
       @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cairo:wght@400;600;700&display=swap');
       .font-quran { font-family: 'Amiri Quran', serif; }
       .font-ui { font-family: 'Cairo', sans-serif; }
-      
+
       .mushaf-bg-dark {
         background-color: #09090b;
-        background-image: radial-gradient(#27272a 1px, transparent 1px);
-        background-size: 24px 24px;
+        background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23d4af37' stroke-width='1.5' fill='none' opacity='0.04'%3E%3Crect x='25' y='25' width='30' height='30' /%3E%3Crect x='25' y='25' width='30' height='30' transform='rotate(45 40 40)' /%3E%3C/g%3E%3Cg stroke='%23d4af37' stroke-width='1.5' fill='none' opacity='0.04'%3E%3Crect x='-15' y='-15' width='30' height='30' /%3E%3Crect x='-15' y='-15' width='30' height='30' transform='rotate(45 0 0)' /%3E%3Crect x='65' y='-15' width='30' height='30' /%3E%3Crect x='65' y='-15' width='30' height='30' transform='rotate(45 80 0)' /%3E%3Crect x='-15' y='65' width='30' height='30' /%3E%3Crect x='-15' y='65' width='30' height='30' transform='rotate(45 0 80)' /%3E%3Crect x='65' y='65' width='30' height='30' /%3E%3Crect x='65' y='65' width='30' height='30' transform='rotate(45 80 80)' /%3E%3C/g%3E%3C/svg%3E");
       }
       .mushaf-bg-light {
         background-color: #fdfbf7;
-        background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
-        background-size: 24px 24px;
+        background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23d4af37' stroke-width='1.5' fill='none' opacity='0.08'%3E%3Crect x='25' y='25' width='30' height='30' /%3E%3Crect x='25' y='25' width='30' height='30' transform='rotate(45 40 40)' /%3E%3C/g%3E%3Cg stroke='%23d4af37' stroke-width='1.5' fill='none' opacity='0.08'%3E%3Crect x='-15' y='-15' width='30' height='30' /%3E%3Crect x='-15' y='-15' width='30' height='30' transform='rotate(45 0 0)' /%3E%3Crect x='65' y='-15' width='30' height='30' /%3E%3Crect x='65' y='-15' width='30' height='30' transform='rotate(45 80 0)' /%3E%3Crect x='-15' y='65' width='30' height='30' /%3E%3Crect x='-15' y='65' width='30' height='30' transform='rotate(45 0 80)' /%3E%3Crect x='65' y='65' width='30' height='30' /%3E%3Crect x='65' y='65' width='30' height='30' transform='rotate(45 80 80)' /%3E%3C/g%3E%3C/svg%3E");
       }
-      
+
       ::-webkit-scrollbar { width: 4px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
@@ -86,6 +84,10 @@ const fetchSurahs = async () => {
 };
 
 const geminiPost = async (payload) => {
+  if (!GEMINI_URL) {
+    throw new Error('Missing Gemini API key');
+  }
+
   const response = await CapacitorHttp.post({
     url: GEMINI_URL,
     headers: { 'Content-Type': 'application/json' },
@@ -99,6 +101,7 @@ const geminiPost = async (payload) => {
   if (typeof response.data === 'string') {
     return JSON.parse(response.data);
   }
+
   return response.data;
 };
 
@@ -133,7 +136,7 @@ const fetchAIChatResponse = async (question) => {
     contents: [{ parts: [{ text: question }] }],
     systemInstruction: { parts: [{ text: "أنت مساعد إسلامي ذكي وموثوق. تجيب على أسئلة المستخدمين بناءً على القرآن الكريم والسنة النبوية الصحيحة. إجاباتك يجب أن تكون دقيقة، مختصرة قدر الإمكان، ومكتوبة بلغة عربية سليمة ومشكولة تشكيلاً تاماً (بالحركات)." }] }
   };
-  
+
   try {
     const data = await geminiPost(payload);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "عُذْراً، لَمْ أَتَمَكَّنْ مِنَ الإِجَابَةِ فِي الْوَقْتِ الْحَالِيِّ.";
@@ -146,26 +149,26 @@ const fetchAIChatResponse = async (question) => {
 const AyahItem = memo(({ ayah, isSelected, isPlayingThisAyah, isBookmarked, onAyahClick, isDarkMode }) => {
   let highlightClass = '';
   if (isSelected) {
-    highlightClass = isDarkMode ? 'bg-amber-500/30 text-amber-400' : 'bg-amber-500/30 text-amber-800';
+    // Loun dyal l-aya mnin kat-sélectionniha (bla background)
+    highlightClass = isDarkMode ? 'text-amber-400' : 'text-amber-600';
   } else if (isPlayingThisAyah) {
-    highlightClass = isDarkMode ? 'text-amber-400 bg-zinc-800/80 rounded-md px-1' : 'text-amber-700 bg-amber-100/80 rounded-md px-1';
+    // Loun dyal l-aya mnin katkun khdama f l-audio
+    highlightClass = isDarkMode ? 'text-amber-300' : 'text-amber-700';
   } else if (isBookmarked) {
-    highlightClass = isDarkMode ? 'bg-emerald-900/40 text-emerald-400 border-b-2 border-emerald-500/50 rounded-sm' : 'bg-emerald-100/60 text-emerald-700 border-b-2 border-emerald-500/50 rounded-sm';
+    // Loun dyal l-aya mnin katdir liha Bookmark (loun akhder)
+    highlightClass = isDarkMode ? 'text-emerald-400' : 'text-emerald-600';
   }
 
   return (
-    <span 
+    <span
       id={`ayah-${ayah.number}`}
       onClick={() => onAyahClick(ayah)}
       className={`cursor-pointer transition-colors duration-300 ${highlightClass}`}
     >
       {ayah.display_text || ayah.text}
-      <span className="relative inline-flex items-center justify-center mx-1.5 align-middle leading-none" style={{ width: '1.9em', height: '1.9em' }}>
-        <svg
-          aria-hidden="true"
-          className={`absolute inset-0 w-full h-full ${isDarkMode ? 'text-amber-500/70' : 'text-amber-600/70'}`}
-        >
-           <use href="#ayah-symbol" />
+      <span className="relative inline-flex items-center justify-center mx-1.5 align-middle" style={{ width: '1.9em', height: '1.9em' }}>
+        <svg className={`absolute inset-0 w-full h-full ${isDarkMode ? 'text-amber-500/70' : 'text-amber-600/70'}`}>
+          <use href="#ayah-symbol" />
         </svg>
         <span className={`absolute inset-0 flex items-center justify-center font-ui font-bold ${isDarkMode ? 'text-amber-300' : 'text-amber-900'}`} style={{ fontSize: '0.65em' }}>
           {toArabicNum(ayah.numberInSurah)}
@@ -182,15 +185,15 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSurahsLoading, setIsSurahsLoading] = useState(false);
   const [surahSearchQuery, setSurahSearchQuery] = useState('');
-  
+
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeView, setActiveView] = useState('reader');
   const [bookmarks, setBookmarks] = useState([]);
-  
+
   // -- FONT SIZE STATE --
   const [fontSize, setFontSize] = useState(36); // Main Quran Font Size
   const [tafsirFontSize, setTafsirFontSize] = useState(18); // Tafsir & Popup Font Size
-  
+
   const [chatMessages, setChatMessages] = useState([
     { role: 'ai', text: 'السَّلَامُ عَلَيْكُمْ. أَنَا مُسَاعِدُكَ الذَّكِيُّ. كَيْفَ يُمْكِنُنِي مُسَاعَدَتُكَ الْيَوْمَ فِي أُمُورِ دِينِكَ وَفْقاً لِلْقُرْآنِ وَالسُّنَّةِ؟' }
   ]);
@@ -198,7 +201,7 @@ export default function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
-  
+
   const [selectedAyah, setSelectedAyah] = useState(null);
   const [tafsir, setTafsir] = useState(null);
   const [isTafsirLoading, setIsTafsirLoading] = useState(false);
@@ -211,21 +214,21 @@ export default function App() {
     injectFonts();
     const savedPage = localStorage.getItem('mushaf_last_page');
     if (savedPage) setCurrentPage(parseInt(savedPage));
-    
+
     // Load saved font sizes
     const savedFontSize = localStorage.getItem('mushaf_font_size');
     if (savedFontSize) setFontSize(parseInt(savedFontSize));
-    
+
     const savedTafsirFontSize = localStorage.getItem('mushaf_tafsir_font_size');
     if (savedTafsirFontSize) setTafsirFontSize(parseInt(savedTafsirFontSize));
-    
+
     try {
       const savedBookmarks = localStorage.getItem('mushaf_bookmarks');
       if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
     } catch (e) {
       setBookmarks([]);
     }
-    
+
     const savedTheme = localStorage.getItem('mushaf_theme');
     if (savedTheme === 'light') setIsDarkMode(false);
   }, []);
@@ -258,7 +261,7 @@ export default function App() {
       if (data) setPageData(data);
       setIsLoading(false);
       localStorage.setItem('mushaf_last_page', currentPage.toString());
-      
+
       setTimeout(() => {
         const scrollTo = sessionStorage.getItem('scroll_to_ayah');
         if (scrollTo) {
@@ -268,9 +271,9 @@ export default function App() {
         }
       }, 100);
     };
-    
+
     loadPage();
-    
+
     if (!sessionStorage.getItem('scroll_to_ayah')) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -294,9 +297,9 @@ export default function App() {
     if (isBookmarked) {
       newBookmarks = bookmarks.filter(b => b.number !== ayah.number);
     } else {
-      newBookmarks = [...bookmarks, { 
-        number: ayah.number, 
-        surahName: ayah.surah.name, 
+      newBookmarks = [...bookmarks, {
+        number: ayah.number,
+        surahName: ayah.surah.name,
         ayahInSurah: ayah.numberInSurah,
         page: currentPage,
         text: ayah.text
@@ -393,11 +396,11 @@ export default function App() {
 
     if (isRightSwipe && currentPage < 604) {
       setCurrentPage(prev => prev + 1);
-    } 
+    }
     else if (isLeftSwipe && currentPage > 1) {
       setCurrentPage(prev => prev - 1);
     }
-    
+
     touchStartRef.current = null;
     touchEndRef.current = null;
   };
@@ -417,14 +420,14 @@ export default function App() {
 
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isChatLoading) return;
-    
+
     const userMsg = chatInput.trim();
     setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setChatInput('');
     setIsChatLoading(true);
 
     const aiResponse = await fetchAIChatResponse(userMsg);
-    
+
     setChatMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
     setIsChatLoading(false);
   };
@@ -464,11 +467,11 @@ export default function App() {
             </div>
           </div>
         );
-        
+
         if (ayah.surah.number !== 1 && ayah.surah.number !== 9 && ayah.numberInSurah === 1) {
           const basmalah = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
           if (ayah.text.startsWith(basmalah)) {
-             ayah.display_text = ayah.text.replace(basmalah, '').trim();
+            ayah.display_text = ayah.text.replace(basmalah, '').trim();
           }
           elements.push(
             <div key={`basmalah-${ayah.surah.number}`} className="w-full text-center font-quran mb-6 text-amber-500/90" style={{ fontSize: '1.2em' }}>
@@ -479,7 +482,7 @@ export default function App() {
       }
 
       elements.push(
-        <AyahItem 
+        <AyahItem
           key={ayah.number}
           ayah={ayah}
           isSelected={selectedAyah?.number === ayah.number}
@@ -494,23 +497,23 @@ export default function App() {
     return elements;
   };
 
-  const filteredSurahs = surahs.filter(surah => 
-    surah.name.includes(surahSearchQuery) || 
+  const filteredSurahs = surahs.filter(surah =>
+    surah.name.includes(surahSearchQuery) ||
     surah.number.toString().includes(surahSearchQuery)
   );
 
-  const themeClasses = isDarkMode 
-    ? 'mushaf-bg-dark text-gray-100' 
+  const themeClasses = isDarkMode
+    ? 'mushaf-bg-dark text-gray-100'
     : 'mushaf-bg-light text-gray-900';
 
   return (
     <div className={`min-h-screen select-none font-ui flex flex-col transition-colors duration-300 ${themeClasses}`} dir="rtl">
-      
+
       <svg width="0" height="0" className="absolute hidden">
         <symbol id="ayah-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-           <circle cx="12" cy="12" r="10" strokeWidth="1.2"/>
-           <circle cx="12" cy="12" r="7.5" strokeWidth="0.75" strokeDasharray="1.5 1.5" opacity="0.8"/>
-           <path d="M12 0.5v2m0 19v2M0.5 12h2m19 0h2" strokeWidth="1.5" strokeLinecap="round"/>
+          {/* dwiwra 3adiya w sampa bla zwa9 bzaf */}
+          <circle cx="12" cy="12" r="10.5" strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="8" strokeWidth="0.5" opacity="0.6" />
         </symbol>
       </svg>
 
@@ -525,21 +528,21 @@ export default function App() {
           </h1>
           {pageData && activeView === 'reader' && (
             <span className="text-xs opacity-80 flex items-center">
-              الجزء {toArabicNum(pageData.ayahs[0].juz)} 
-              <span className="mx-2.5 text-amber-500/60 text-[10px]">•</span> 
+              الجزء {toArabicNum(pageData.ayahs[0].juz)}
+              <span className="mx-2.5 text-amber-500/60 text-[10px]">•</span>
               الحزب {toArabicNum(pageData.ayahs[0].hizbQuarter)}
             </span>
           )}
         </div>
-        
+
         <div className="flex gap-2 items-center">
           {activeView === 'reader' && (
             <div className="flex items-center gap-2">
-              <button 
-                onClick={togglePagePlay} 
+              <button
+                onClick={togglePagePlay}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all
-                  ${audioState.playing && playbackState.current.isPlayingPage 
-                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' 
+                  ${audioState.playing && playbackState.current.isPlayingPage
+                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
                     : (isDarkMode ? 'bg-zinc-800 text-amber-500 hover:bg-zinc-700' : 'bg-gray-100 text-amber-700 hover:bg-gray-200')}
                 `}
               >
@@ -558,7 +561,7 @@ export default function App() {
               </div>
             </div>
           )}
-          
+
           <button onClick={toggleTheme} className="p-2 ml-1 rounded-full transition">
             {isDarkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} />}
           </button>
@@ -566,11 +569,11 @@ export default function App() {
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col relative overflow-hidden" 
-            onTouchStart={onTouchStart} 
-            onTouchMove={onTouchMove} 
-            onTouchEnd={onTouchEnd}>
-        
+      <main className="flex-1 flex flex-col relative overflow-hidden"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}>
+
         {/* READER VIEW */}
         {activeView === 'reader' && (
           <div className="flex-1 overflow-y-auto px-4 py-8 pb-32 flex flex-col items-center">
@@ -580,17 +583,17 @@ export default function App() {
               </div>
             ) : (
               <div className="w-full max-w-4xl mx-auto transition-all duration-300">
-                <div 
+                <div
                   className={`text-justify font-quran transition-all duration-300 py-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
-                  style={{ 
-                    fontSize: `${fontSize}px`, 
+                  style={{
+                    fontSize: `${fontSize}px`,
                     lineHeight: `${fontSize * 2.5}px`,
-                    textJustify: 'inter-word' 
+                    textJustify: 'inter-word'
                   }}
                 >
                   {renderMushafText()}
                 </div>
-                
+
                 <div className="w-full text-center mt-12 opacity-50 font-ui" style={{ fontSize: '1rem' }}>
                   - {toArabicNum(currentPage)} -
                 </div>
@@ -605,14 +608,14 @@ export default function App() {
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <List className="text-amber-500" /> الفهرس
             </h2>
-            
+
             <div className={`mb-6 p-1 rounded-xl flex items-center gap-2 border transition-colors ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200 shadow-sm'}`}>
               <div className="p-2 ml-1">
                 <Search className="text-amber-500 opacity-70" size={20} />
               </div>
-              <input 
-                type="text" 
-                placeholder="ابحث عن سورة (مثال: الفاتحة، 18...)" 
+              <input
+                type="text"
+                placeholder="ابحث عن سورة (مثال: الفاتحة، 18...)"
                 value={surahSearchQuery}
                 onChange={(e) => setSurahSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent outline-none w-full py-3 pr-2 text-base select-text"
@@ -633,41 +636,42 @@ export default function App() {
                 {filteredSurahs.map(surah => {
                   const startPage = SURAH_START_PAGES[surah.number - 1] || 1;
                   return (
-                  <button
-                    key={surah.number}
-                    onClick={() => {
-                      setCurrentPage(startPage);
-                      setActiveView('reader');
-                    }}
-                    className={`
+                    <button
+                      key={surah.number}
+                      onClick={() => {
+                        setCurrentPage(startPage);
+                        setActiveView('reader');
+                      }}
+                      className={`
                       w-full flex justify-between items-center p-4 rounded-xl border transition
-                      ${isDarkMode 
-                        ? 'border-zinc-800 bg-zinc-900/50' 
-                        : 'border-zinc-200 bg-white/50'}
+                      ${isDarkMode
+                          ? 'border-zinc-800 bg-zinc-900/50'
+                          : 'border-zinc-200 bg-white/50'}
                     `}
-                  >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 font-bold">
-                      {surah.number}
-                    </div>
-                    <div className="text-right">
-                      <div className="font-quran text-2xl leading-relaxed pb-1 text-amber-500">{surah.name}</div>
-                      <div className="text-xs opacity-60 font-ui">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'} • {surah.numberOfAyahs} آية</div>
-                    </div>
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-600 font-bold">
+                          {surah.number}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-quran text-2xl leading-relaxed pb-1 text-amber-500">{surah.name}</div>
+                          <div className="text-xs opacity-60 font-ui">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'} • {surah.numberOfAyahs} آية</div>
+                        </div>
+                      </div>
+                      <div className="text-sm opacity-50">
+                        صفحة {startPage}
+                      </div>
+                    </button>
+                  )
+                })}
+
+                {filteredSurahs.length === 0 && (
+                  <div className="text-center opacity-50 mt-12 py-8 flex flex-col items-center">
+                    <Search size={48} className="mb-4 opacity-20" />
+                    <p>لا توجد سورة تطابق بحثك "{surahSearchQuery}"</p>
                   </div>
-                  <div className="text-sm opacity-50">
-                    صفحة {startPage}
-                  </div>
-                </button>
-              )})}
-              
-              {filteredSurahs.length === 0 && (
-                <div className="text-center opacity-50 mt-12 py-8 flex flex-col items-center">
-                  <Search size={48} className="mb-4 opacity-20" />
-                  <p>لا توجد سورة تطابق بحثك "{surahSearchQuery}"</p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -692,8 +696,8 @@ export default function App() {
                     }}
                     className={`
                       w-full flex justify-between items-center p-4 rounded-xl border transition text-right
-                      ${isDarkMode 
-                        ? 'border-zinc-800 bg-zinc-900/50' 
+                      ${isDarkMode
+                        ? 'border-zinc-800 bg-zinc-900/50'
                         : 'border-zinc-200 bg-white/50'}
                     `}
                   >
@@ -702,7 +706,7 @@ export default function App() {
                         {bm.surahName} {bm.ayahInSurah ? <span className="font-ui text-sm text-gray-500">- آية {bm.ayahInSurah}</span> : ''}
                       </div>
                       {bm.text && (
-                        <div className="text-sm opacity-70 font-quran truncate mb-1" style={{maxWidth: "280px", lineHeight: "1.8"}}>
+                        <div className="text-sm opacity-70 font-quran truncate mb-1" style={{ maxWidth: "280px", lineHeight: "1.8" }}>
                           {bm.text}
                         </div>
                       )}
@@ -723,19 +727,19 @@ export default function App() {
               <div className="text-center opacity-50 text-sm mb-6 mt-2">
                 اسأل عن التفسير، السيرة، أو الأحكام من القرآن والسنة
               </div>
-              
+
               {chatMessages.map((msg, i) => (
                 <div key={i} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`
                     p-4 rounded-2xl max-w-[85%]
-                    ${msg.role === 'user' 
-                      ? 'bg-amber-600 text-white rounded-tl-sm' 
+                    ${msg.role === 'user'
+                      ? 'bg-amber-600 text-white rounded-tl-sm'
                       : (isDarkMode ? 'bg-zinc-800 text-gray-200 rounded-tr-sm' : 'bg-white border text-gray-800 rounded-tr-sm')}
                   `}>
                     <div className="leading-relaxed font-quran" style={{ fontSize: `${tafsirFontSize}px` }}>{msg.text}</div>
                     {msg.role === 'ai' && (
                       <div className="flex justify-end mt-2">
-                        <button 
+                        <button
                           onClick={() => copyToClipboard(msg.text, i)}
                           className="text-amber-500 flex items-center gap-1 text-xs opacity-80"
                         >
@@ -746,7 +750,7 @@ export default function App() {
                   </div>
                 </div>
               ))}
-              
+
               {isChatLoading && (
                 <div className="flex w-full justify-start">
                   <div className={`p-4 rounded-2xl max-w-[85%] rounded-tr-sm flex items-center gap-2 ${isDarkMode ? 'bg-zinc-800' : 'bg-white border'}`}>
@@ -759,8 +763,8 @@ export default function App() {
 
             <div className={`p-4 border-t ${isDarkMode ? 'border-zinc-800 bg-zinc-950/90' : 'border-gray-200 bg-white/90'}`}>
               <div className="flex gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
@@ -770,13 +774,13 @@ export default function App() {
                     ${isDarkMode ? 'bg-zinc-900 border-zinc-700 focus:border-amber-500' : 'bg-gray-50 border-gray-300 focus:border-amber-500'}
                   `}
                 />
-                <button 
+                <button
                   onClick={handleSendMessage}
                   disabled={isChatLoading || !chatInput.trim()}
                   className={`
                     p-3 rounded-xl flex items-center justify-center transition-colors
-                    ${!chatInput.trim() || isChatLoading 
-                      ? 'bg-gray-500/20 text-gray-500 cursor-not-allowed' 
+                    ${!chatInput.trim() || isChatLoading
+                      ? 'bg-gray-500/20 text-gray-500 cursor-not-allowed'
                       : 'bg-amber-500 text-white'}
                   `}
                 >
@@ -791,7 +795,7 @@ export default function App() {
       {/* FLOATING PAGE NAVIGATION */}
       {activeView === 'reader' && (
         <div className="fixed bottom-24 left-0 w-full flex justify-between px-6 pointer-events-none">
-          <button 
+          <button
             onClick={() => setCurrentPage(prev => Math.min(604, prev + 1))}
             disabled={currentPage === 604}
             className={`
@@ -802,8 +806,8 @@ export default function App() {
           >
             <ChevronRight size={24} />
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
             className={`
@@ -820,38 +824,38 @@ export default function App() {
       {/* AYAH POPUP - TAFSIR & OPTIONS */}
       {selectedAyah && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-             onClick={(e) => { if (e.target === e.currentTarget) setSelectedAyah(null); }}>
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedAyah(null); }}>
           <div className={`
             w-full max-w-lg rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto
             ${isDarkMode ? 'bg-zinc-900 border-t border-zinc-800' : 'bg-white border-t border-gray-200'}
           `}>
-            
+
             <div className="flex justify-between items-start mb-4 sticky top-0 backdrop-blur-md py-2 z-10">
               <div className="flex flex-wrap gap-2 items-center">
-                <button 
+                <button
                   onClick={() => playAyahAudio(selectedAyah.number)}
                   className={`
                     p-2.5 rounded-full transition
-                    ${audioState.playing && audioState.currentAyahNumber === selectedAyah.number 
-                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' 
+                    ${audioState.playing && audioState.currentAyahNumber === selectedAyah.number
+                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
                       : (isDarkMode ? 'bg-zinc-800 text-amber-500' : 'bg-gray-100 text-amber-700')}
                   `}
                 >
                   {audioState.playing && audioState.currentAyahNumber === selectedAyah.number ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
                 </button>
-                <button 
+                <button
                   onClick={() => toggleBookmark(selectedAyah)}
                   className={`
                     p-2.5 rounded-full transition
                     ${isDarkMode ? 'bg-zinc-800' : 'bg-gray-100'}
                   `}
                 >
-                  <Bookmark 
-                    size={18} 
-                    className={bookmarks.some(b => b.number === selectedAyah.number) ? "fill-amber-500 text-amber-500" : "text-gray-500"} 
+                  <Bookmark
+                    size={18}
+                    className={bookmarks.some(b => b.number === selectedAyah.number) ? "fill-amber-500 text-amber-500" : "text-gray-500"}
                   />
                 </button>
-                
+
                 {/* TAFSIR ZOOM CONTROLS */}
                 <div className={`flex items-center gap-1 p-1 rounded-full ${isDarkMode ? 'bg-zinc-800' : 'bg-gray-100'}`}>
                   <button onClick={() => setTafsirFontSize(prev => Math.min(prev + 2, 40))} className="p-1.5 rounded-full transition text-amber-500">
@@ -868,22 +872,22 @@ export default function App() {
                 <X size={24} />
               </button>
             </div>
-            
-            <div 
+
+            <div
               className="text-center font-quran leading-loose mb-6 mt-2 text-amber-500 transition-all duration-300"
               style={{ fontSize: `${tafsirFontSize * 1.3}px` }}
             >
               {selectedAyah.text}
             </div>
-            
+
             {!tafsir ? (
-              <button 
+              <button
                 onClick={getAIExplanation}
                 disabled={isTafsirLoading}
                 className={`
                   w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition
-                  ${isDarkMode 
-                    ? 'bg-zinc-800 text-amber-400' 
+                  ${isDarkMode
+                    ? 'bg-zinc-800 text-amber-400'
                     : 'bg-amber-50 text-amber-700'}
                 `}
               >
@@ -891,7 +895,7 @@ export default function App() {
                 {isTafsirLoading ? 'جاري استخراج التفسير...' : 'تفسير الآية (AI)'}
               </button>
             ) : (
-              <div 
+              <div
                 className={`
                   p-4 rounded-xl text-justify border transition-all duration-300 font-quran
                   ${isDarkMode ? 'bg-zinc-800/50 border-amber-900/30 text-gray-300' : 'bg-amber-50/50 border-amber-200 text-gray-800'}
@@ -913,23 +917,23 @@ export default function App() {
         fixed bottom-0 w-full pb-safe pt-2 px-4 flex justify-between items-center border-t backdrop-blur-md z-20
         ${isDarkMode ? 'bg-zinc-950/90 border-zinc-800' : 'bg-white/90 border-gray-200'}
       `}>
-        <button 
+        <button
           onClick={() => setActiveView('reader')}
           className={`flex-1 flex flex-col items-center p-2 transition ${activeView === 'reader' ? 'text-amber-500' : 'opacity-50'}`}
         >
           <BookOpen size={22} className="mb-1" />
           <span className="text-[10px] font-bold">المصحف</span>
         </button>
-        
-        <button 
+
+        <button
           onClick={() => setActiveView('surahs')}
           className={`flex-1 flex flex-col items-center p-2 transition ${activeView === 'surahs' ? 'text-amber-500' : 'opacity-50'}`}
         >
           <List size={22} className="mb-1" />
           <span className="text-[10px] font-bold">الفهرس</span>
         </button>
-        
-        <button 
+
+        <button
           onClick={() => setActiveView('bookmarks')}
           className={`flex-1 flex flex-col items-center p-2 transition ${activeView === 'bookmarks' ? 'text-amber-500' : 'opacity-50'}`}
         >
@@ -937,7 +941,7 @@ export default function App() {
           <span className="text-[10px] font-bold">العلامات</span>
         </button>
 
-        <button 
+        <button
           onClick={() => setActiveView('qa')}
           className={`flex-1 flex flex-col items-center p-2 transition ${activeView === 'qa' ? 'text-amber-500' : 'opacity-50'}`}
         >
